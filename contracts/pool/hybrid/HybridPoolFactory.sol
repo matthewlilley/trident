@@ -2,15 +2,16 @@
 
 pragma solidity >=0.8.0;
 
+import "../../abstract/Factory.sol";
+
 import "./HybridPool.sol";
-import "../../abstract/PoolDeployer.sol";
 
 /// @notice Contract for deploying Trident exchange Hybrid Pool with configurations.
 /// @author Mudit Gupta.
-contract HybridPoolFactory is PoolDeployer {
-    constructor(address _masterDeployer) PoolDeployer(_masterDeployer) {}
+contract HybridPoolFactory is Factory {
+    constructor(address _masterDeployer) Factory(_masterDeployer) {}
 
-    function deployPool(bytes memory _deployData) external returns (address pool) {
+    function deployPool(bytes memory _deployData) external override returns (address pool) {
         (address tokenA, address tokenB, uint256 swapFee, uint256 a) = abi.decode(_deployData, (address, address, uint256, uint256));
 
         if (tokenA > tokenB) {

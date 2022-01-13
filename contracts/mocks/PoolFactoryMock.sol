@@ -2,13 +2,14 @@
 
 pragma solidity >= 0.8.0;
 
-import "../interfaces/IPoolFactory.sol";
-import "../abstract/PoolDeployer.sol";
+import "../abstract/Factory.sol";
+import "../pool/IPoolFactory.sol";
+
 import "./PoolTemplateMock.sol";
 
-contract PoolFactoryMock is PoolDeployer {
-    constructor(address _masterDeployer) PoolDeployer(_masterDeployer) {}
-    function deployPool(bytes memory _deployData) external onlyMaster returns (address pool) {
+contract PoolFactoryMock is Factory {
+    constructor(address _masterDeployer) Factory(_masterDeployer) {}
+    function deployPool(bytes memory _deployData) external override onlyMaster returns (address pool) {
         (address tokenA, address tokenB) = abi.decode(_deployData, (address, address));
 
         // @dev correctly sorts tokens to ensure _register in PoolDeployer does not revert

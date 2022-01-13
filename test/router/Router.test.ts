@@ -33,7 +33,7 @@ describe("Router", function () {
     const Bento = await ethers.getContractFactory("BentoBoxV1");
     const Deployer = await ethers.getContractFactory("MasterDeployer");
     const PoolFactory = await ethers.getContractFactory("ConstantProductPoolFactory");
-    const TridentRouter = await ethers.getContractFactory("TridentRouter");
+    const Router = await ethers.getContractFactory("Router");
     const Pool = await ethers.getContractFactory("ConstantProductPool");
 
     weth = await ERC20.deploy("WETH", "ETH", getBigNumber("10000000"));
@@ -44,7 +44,7 @@ describe("Router", function () {
     bento = await Bento.deploy(weth.address);
     masterDeployer = await Deployer.deploy(17, alice.address, bento.address);
     tridentPoolFactory = await PoolFactory.deploy(masterDeployer.address);
-    router = await TridentRouter.deploy(bento.address, masterDeployer.address, weth.address);
+    router = await Router.deploy(bento.address, masterDeployer.address, weth.address);
 
     // Whitelist pool factory in master deployer
     await masterDeployer.addToWhitelist(tridentPoolFactory.address);
@@ -78,7 +78,11 @@ describe("Router", function () {
       ["address", "address", "uint256", "bool"],
       [addresses[0], addresses[1], 30, false]
     );
-    pool = await Pool.attach((await (await masterDeployer.deployPool(tridentPoolFactory.address, deployData)).wait()).events[0].args[1]);
+    pool = await Pool.attach(
+      (
+        await (await masterDeployer.deployPool(tridentPoolFactory.address, deployData)).wait()
+      ).events[0].args[1]
+    );
     addresses = [dai.address, sushi.address].sort();
     const deployData2 = ethers.utils.defaultAbiCoder.encode(
       ["address", "address", "uint256", "bool"],
@@ -364,7 +368,9 @@ describe("Router", function () {
       let oldPoolSushiBalance = await bento.balanceOf(sushi.address, pool.address);
       await router.exactInput(params);
       expect(await bento.balanceOf(weth.address, alice.address)).eq(oldAliceWethBalance.sub(amountIn));
-      expect(await bento.balanceOf(sushi.address, alice.address)).lt(oldAliceSushiBalance.add(expectedAmountOutSingleHop));
+      expect(await bento.balanceOf(sushi.address, alice.address)).lt(
+        oldAliceSushiBalance.add(expectedAmountOutSingleHop)
+      );
       expect(await bento.balanceOf(weth.address, pool.address)).gt(oldPoolWethBalance.add(amountIn));
       expect(await bento.balanceOf(sushi.address, pool.address)).gt(
         oldPoolSushiBalance.sub(BigNumber.from(2).mul(expectedAmountOutSingleHop))

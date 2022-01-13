@@ -5,7 +5,14 @@ import { ethers } from "hardhat";
 import { BigNumber, Contract, ContractFactory } from "ethers";
 import seedrandom from "seedrandom";
 import { getBigNumber } from "../utilities";
-import { ConstantProductPool, ERC20Mock, BentoBoxV1, MasterDeployer, TridentRouter, ConstantProductPoolFactory } from "../../types";
+import {
+  ConstantProductPool,
+  ERC20Mock,
+  BentoBoxV1,
+  MasterDeployer,
+  Router,
+  ConstantProductPoolFactory,
+} from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/src/signers";
 import { ConstantProductRPool } from "@sushiswap/tines";
 
@@ -63,17 +70,21 @@ describe("ConstantProductPool Typescript == Solidity check", function () {
     bento: BentoBoxV1,
     masterDeployer: MasterDeployer,
     tridentPoolFactory: ConstantProductPoolFactory,
-    router: TridentRouter,
+    router: Router,
     Pool: ContractFactory;
 
-  async function createConstantProductPool(fee: Number, res0exp: Number, res1exp: Number): [ConstantProductRPool, Contract] {
+  async function createConstantProductPool(
+    fee: Number,
+    res0exp: Number,
+    res1exp: Number
+  ): [ConstantProductRPool, Contract] {
     [alice, feeTo] = await ethers.getSigners();
 
     const ERC20 = await ethers.getContractFactory("ERC20Mock");
     const Bento = await ethers.getContractFactory("BentoBoxV1");
     const Deployer = await ethers.getContractFactory("MasterDeployer");
     const PoolFactory = await ethers.getContractFactory("ConstantProductPoolFactory");
-    const SwapRouter = await ethers.getContractFactory("TridentRouter");
+    const Router = await ethers.getContractFactory("Router");
     Pool = await ethers.getContractFactory("ConstantProductPool");
 
     weth = await ERC20.deploy("WETH", "WETH", getBigNumber("1000000000000000000"));
@@ -91,7 +102,7 @@ describe("ConstantProductPool Typescript == Solidity check", function () {
 
     tridentPoolFactory = await PoolFactory.deploy(masterDeployer.address);
     await tridentPoolFactory.deployed();
-    router = await SwapRouter.deploy(bento.address, masterDeployer.address, weth.address);
+    router = await Router.deploy(bento.address, masterDeployer.address, weth.address);
     await router.deployed();
 
     // Whitelist pool factory in master deployer
@@ -116,7 +127,9 @@ describe("ConstantProductPool Typescript == Solidity check", function () {
     );
 
     const [address0, address1]: string[] =
-      usdt.address.toUpperCase() < usdc.address.toUpperCase() ? [usdt.address, usdc.address] : [usdc.address, usdt.address];
+      usdt.address.toUpperCase() < usdc.address.toUpperCase()
+        ? [usdt.address, usdc.address]
+        : [usdc.address, usdt.address];
     const deployData = ethers.utils.defaultAbiCoder.encode(
       ["address", "address", "uint256", "bool"],
       [address0, address1, Math.round(fee * 10_000), true]
@@ -128,7 +141,8 @@ describe("ConstantProductPool Typescript == Solidity check", function () {
     );
 
     const [jsVal0, bnVal0] = getIntegerRandomValueWithMin(res0exp, MINIMUM_LIQUIDITY);
-    const [jsVal1, bnVal1] = res1exp == undefined ? [jsVal0, bnVal0] : getIntegerRandomValueWithMin(res1exp, MINIMUM_LIQUIDITY);
+    const [jsVal1, bnVal1] =
+      res1exp == undefined ? [jsVal0, bnVal0] : getIntegerRandomValueWithMin(res1exp, MINIMUM_LIQUIDITY);
     await bento.transfer(usdt.address, alice.address, pool.address, bnVal0);
     await bento.transfer(usdc.address, alice.address, pool.address, bnVal1);
     await pool.mint(ethers.utils.defaultAbiCoder.encode(["address"], [alice.address]));
@@ -158,7 +172,10 @@ describe("ConstantProductPool Typescript == Solidity check", function () {
       data: encodedSwapData(t0.address, alice.address, false),
     };
 
-    poolRouterInfo.updateReserves(await bento.balanceOf(usdt.address, pool.address), await bento.balanceOf(usdc.address, pool.address));
+    poolRouterInfo.updateReserves(
+      await bento.balanceOf(usdt.address, pool.address),
+      await bento.balanceOf(usdc.address, pool.address)
+    );
 
     let balOutBefore: BigNumber = await bento.balanceOf(t1.address, alice.address);
     await router.connect(alice).exactInputSingle(params);
@@ -181,10 +198,10 @@ describe("ConstantProductPool Typescript == Solidity check", function () {
     const amountOutPrediction2 = poolRouterInfo.calcOutByIn(amounInExpected, swapDirection).out;
     // console.log(Math.abs(amounInExpected/jsValue-1), amounInExpected, jsValue);
     // console.log(Math.abs(amountOutPrediction/amountOutPrediction2-1), amountOutPrediction, amountOutPrediction2);
-    expect(areCloseValues(amounInExpected, jsValue, 1e-12) || areCloseValues(amountOutPrediction, amountOutPrediction2, 1e-12)).equals(
-      true,
-      "values were not equal"
-    );
+    expect(
+      areCloseValues(amounInExpected, jsValue, 1e-12) ||
+        areCloseValues(amountOutPrediction, amountOutPrediction2, 1e-12)
+    ).equals(true, "values were not equal");
     swapDirection = !swapDirection;
   }
 

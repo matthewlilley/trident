@@ -3,7 +3,7 @@
 import { ethers, deployments, ethers } from "hardhat";
 import { expect } from "chai";
 import { encodedSwapData, getBigNumber, randBetween, sqrt, printHumanReadable, ZERO, TWO, MAX_FEE } from "./helpers";
-import { BentoBoxV1, ERC20Mock__factory, IConstantProductPool, MasterDeployer, TridentRouter } from "../../types";
+import { BentoBoxV1, ERC20Mock__factory, IConstantProductPool, MasterDeployer, Router } from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const { BigNumber, utils } = ethers;
@@ -14,7 +14,7 @@ let tokens: ERC20Mock[] = [];
 let pools: IConstantProductPool[] = [];
 let bento: BentoBoxV1;
 let masterDeployer: MasterDeployer;
-let router: TridentRouter;
+let router: Router;
 let aliceEncoded: string;
 
 export async function initialize() {
@@ -36,7 +36,7 @@ export async function initialize() {
   const Bento = await ethers.getContractFactory("BentoBoxV1");
   const Deployer = await ethers.getContractFactory("MasterDeployer");
   const PoolFactory = await ethers.getContractFactory("ConstantProductPoolFactory");
-  const TridentRouter = await ethers.getContractFactory("TridentRouter");
+  const Router = await ethers.getContractFactory("Router");
   const Pool = await ethers.getContractFactory("ConstantProductPool");
 
   bento = await Bento.deploy(tokens[0].address);
@@ -45,7 +45,7 @@ export async function initialize() {
   masterDeployer = await Deployer.deploy(randBetween(1, 9999), accounts[1].address, bento.address);
   await masterDeployer.deployed();
 
-  router = await TridentRouter.deploy(bento.address, masterDeployer.address, tokens[0].address);
+  router = await Router.deploy(bento.address, masterDeployer.address, tokens[0].address);
   await router.deployed();
 
   // Whitelist Router on BentoBox
@@ -89,9 +89,14 @@ export async function initialize() {
       token0 = tokens[i + 1];
       token1 = tokens[i];
     }
-    const deployData = utils.defaultAbiCoder.encode(["address", "address", "uint256", "bool"], [token0.address, token1.address, 30, false]);
+    const deployData = utils.defaultAbiCoder.encode(
+      ["address", "address", "uint256", "bool"],
+      [token0.address, token1.address, 30, false]
+    );
     const salt = utils.keccak256(deployData);
-    const constructorParams = utils.defaultAbiCoder.encode(["bytes", "address"], [deployData, masterDeployer.address]).substring(2);
+    const constructorParams = utils.defaultAbiCoder
+      .encode(["bytes", "address"], [deployData, masterDeployer.address])
+      .substring(2);
     const initCodeHash = utils.keccak256(Pool.bytecode + constructorParams);
     const poolAddress = utils.getCreate2Address(poolFactory.address, salt, initCodeHash);
     pools.push(Pool.attach(poolAddress));
@@ -136,7 +141,11 @@ export async function addLiquidity(poolIndex, amount0, amount1, native0 = false,
     },
   ];
 
-  const [kLast, barFee, swapFee] = await Promise.all([pools[poolIndex].kLast(), masterDeployer.barFee(), pools[poolIndex].swapFee()]);
+  const [kLast, barFee, swapFee] = await Promise.all([
+    pools[poolIndex].kLast(),
+    masterDeployer.barFee(),
+    pools[poolIndex].swapFee(),
+  ]);
   const [computedLiquidity, expectedIncreaseInTotalSupply] = liquidityCalculations(
     initialBalances,
     amount0,
@@ -191,7 +200,10 @@ export async function swap(hops, amountIn, reverse = false, nativeIn = false, na
       amountOutMinimum: amountOuts[0],
       pool: pools[0].address,
       tokenIn: tokenIn,
-      data: ethers.utils.defaultAbiCoder.encode(["address", "address", "bool"], [tokenIn, accounts[0].address, nativeOut]),
+      data: ethers.utils.defaultAbiCoder.encode(
+        ["address", "address", "bool"],
+        [tokenIn, accounts[0].address, nativeOut]
+      ),
     };
     if (nativeIn) {
       await router.exactInputSingleWithNativeToken(params);
@@ -269,22 +281,36 @@ export async function burnLiquidity(poolIndex, amount, withdrawType, unwrapBento
   // ]
   const initialBalances = await getBalances(pool, accounts[0].address, token0, token1);
 
-  const [kLast, barFee, swapFee] = await Promise.all([pools[poolIndex].kLast(), masterDeployer.barFee(), pools[poolIndex].swapFee()]);
+  const [kLast, barFee, swapFee] = await Promise.all([
+    pools[poolIndex].kLast(),
+    masterDeployer.barFee(),
+    pools[poolIndex].swapFee(),
+  ]);
 
   let [amount0, amount1, feeMint] = burnCalculations(initialBalances, amount, kLast, barFee);
 
   var burnLiquidityPromise;
   if (withdrawType == 0) {
     // Withdraw in token0 only
-    amount0 = amount0.add(getAmountOut(amount1, initialBalances[2].sub(amount1), initialBalances[1].sub(amount0), swapFee));
+    amount0 = amount0.add(
+      getAmountOut(amount1, initialBalances[2].sub(amount1), initialBalances[1].sub(amount0), swapFee)
+    );
     amount1 = ZERO;
-    const burnData = utils.defaultAbiCoder.encode(["address", "address", "bool"], [token0.address, accounts[0].address, unwrapBento]);
+    const burnData = utils.defaultAbiCoder.encode(
+      ["address", "address", "bool"],
+      [token0.address, accounts[0].address, unwrapBento]
+    );
     burnLiquidityPromise = router.burnLiquiditySingle(pool.address, amount, burnData, amount0);
   } else if (withdrawType == 1) {
     // Withdraw in token1 only
-    amount1 = amount1.add(getAmountOut(amount0, initialBalances[1].sub(amount0), initialBalances[2].sub(amount1), swapFee));
+    amount1 = amount1.add(
+      getAmountOut(amount0, initialBalances[1].sub(amount0), initialBalances[2].sub(amount1), swapFee)
+    );
     amount0 = ZERO;
-    const burnData = utils.defaultAbiCoder.encode(["address", "address", "bool"], [token1.address, accounts[0].address, unwrapBento]);
+    const burnData = utils.defaultAbiCoder.encode(
+      ["address", "address", "bool"],
+      [token1.address, accounts[0].address, unwrapBento]
+    );
     burnLiquidityPromise = router.burnLiquiditySingle(pool.address, amount, burnData, amount1);
   } else {
     // Withdraw evenly
@@ -303,9 +329,13 @@ export async function burnLiquidity(poolIndex, amount, withdrawType, unwrapBento
   }
 
   if (token0.address < token1.address) {
-    await expect(burnLiquidityPromise).to.emit(pool, "Burn").withArgs(router.address, amount0, amount1, accounts[0].address, amount);
+    await expect(burnLiquidityPromise)
+      .to.emit(pool, "Burn")
+      .withArgs(router.address, amount0, amount1, accounts[0].address, amount);
   } else {
-    await expect(burnLiquidityPromise).to.emit(pool, "Burn").withArgs(router.address, amount1, amount0, accounts[0].address, amount);
+    await expect(burnLiquidityPromise)
+      .to.emit(pool, "Burn")
+      .withArgs(router.address, amount1, amount0, accounts[0].address, amount);
   }
 
   const finalBalances = await getBalances(pool, accounts[0].address, token0, token1);
@@ -367,7 +397,9 @@ async function getSwapAmounts(hops, amountIn, poolBalances, reverse = false) {
   if (reverse) {
     for (let i = 0; i < hops; i++) {
       const poolIndex = hops - i - 1;
-      amountOuts.push(getAmountOut(amountIn, poolBalances[2 * poolIndex + 1], poolBalances[2 * poolIndex], poolFees[poolIndex]));
+      amountOuts.push(
+        getAmountOut(amountIn, poolBalances[2 * poolIndex + 1], poolBalances[2 * poolIndex], poolFees[poolIndex])
+      );
       amountIn = amountOuts[i];
     }
     amountOuts.reverse();
@@ -407,7 +439,11 @@ function getPath(hops, reverse, nativeOut, user) {
   for (let i = 0; i < hops; i++) {
     path.push({
       pool: pools[i].address,
-      data: encodedSwapData(tokens[i].address, i == hops - 1 ? user : pools[i + 1].address, i == hops - 1 ? nativeOut : false),
+      data: encodedSwapData(
+        tokens[i].address,
+        i == hops - 1 ? user : pools[i + 1].address,
+        i == hops - 1 ? nativeOut : false
+      ),
     });
   }
   return path;
@@ -439,7 +475,9 @@ function liquidityCalculations(initialBalances, amount0, amount1, kLast, barFee,
   const computedLiquidity = preMintComputed.isZero()
     ? computed.sub(BigNumber.from(1000))
     : computed.sub(preMintComputed).mul(updatedTotalSupply).div(preMintComputed);
-  const expectedIncreaseInTotalSupply = computedLiquidity.add(feeMint).add(preMintComputed.isZero() ? BigNumber.from(1000) : ZERO);
+  const expectedIncreaseInTotalSupply = computedLiquidity
+    .add(feeMint)
+    .add(preMintComputed.isZero() ? BigNumber.from(1000) : ZERO);
   return [computedLiquidity, expectedIncreaseInTotalSupply];
 }
 

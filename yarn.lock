@@ -23,6 +23,10 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
+"@boringcrypto/boring-solidity@boringcrypto/BoringSolidity#8f2b54f645a7844ae266cc50dc3ae4c125c7b9fc":
+  version "1.2.0"
+  resolved "https://codeload.github.com/boringcrypto/BoringSolidity/tar.gz/8f2b54f645a7844ae266cc50dc3ae4c125c7b9fc"
+
 "@codechecks/client@^0.1.12":
   version "0.1.12"
   resolved "https://registry.yarnpkg.com/@codechecks/client/-/client-0.1.12.tgz#519f11be8fcaa581c6ee8d5e8457e35bbbe5d9b1"
@@ -782,6 +786,18 @@
   integrity sha512-cX0JJRcmPtNUJpzD2K7FdA7qQsTOk1UZnFx2k7qAg9ZRvuaH5NBe5IEdBMXGlmf2+FmjhqbygJ26H8l2SV7aKQ==
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
+
+"@sushiswap/bentobox@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@sushiswap/bentobox/-/bentobox-0.4.0.tgz#0068d752c53f526adeaef644e7adc63a108250f7"
+  integrity sha512-cQLuMCu8DN6Qx4CaWDjr1wWij2GF2wUpfDdI/eKzigbEVZHzHv+IAOIO0D/aU73DoK+LZXpa6151FSJX8xVX1g==
+  dependencies:
+    "@boringcrypto/boring-solidity" boringcrypto/BoringSolidity#8f2b54f645a7844ae266cc50dc3ae4c125c7b9fc
+
+"@sushiswap/contracts@1.0.0-canary.1":
+  version "1.0.0-canary.1"
+  resolved "https://registry.yarnpkg.com/@sushiswap/contracts/-/contracts-1.0.0-canary.1.tgz#8b43a05510ea86f2af3c12bd66291220ac2962ea"
+  integrity sha512-+QAfYv/DqeOzNgsZRu9KOxH506Ypu2+GCoHYxQl4WiIHdO24LyiugrE+1YGIIFpeSW/OEwiCLGAz4ZYEAlxLuQ==
 
 "@sushiswap/core-sdk@1.0.0-canary.34":
   version "1.0.0-canary.34"

@@ -15,7 +15,7 @@ describe("Router", function () {
     const Bento = await ethers.getContractFactory("BentoBoxV1");
     const Deployer = await ethers.getContractFactory("MasterDeployer");
     const PoolFactory = await ethers.getContractFactory("HybridPoolFactory");
-    const SwapRouter = await ethers.getContractFactory("TridentRouter");
+    const SwapRouter = await ethers.getContractFactory("Router");
     const Pool = await ethers.getContractFactory("HybridPool");
     weth = await ERC20.deploy("WETH", "WETH", getBigNumber("10000000"));
     usdc = await ERC20.deploy("USDC", "USDC", getBigNumber("10000000"));
@@ -62,7 +62,11 @@ describe("Router", function () {
       [addresses[0], addresses[1], 30, 200000]
     );
 
-    pool = await Pool.attach((await (await masterDeployer.deployPool(tridentPoolFactory.address, deployData)).wait()).events[0].args[1]);
+    pool = await Pool.attach(
+      (
+        await (await masterDeployer.deployPool(tridentPoolFactory.address, deployData)).wait()
+      ).events[0].args[1]
+    );
 
     addresses = [dai.address, usdc.address].sort();
     const deployData2 = ethers.utils.defaultAbiCoder.encode(
@@ -84,7 +88,9 @@ describe("Router", function () {
       await bento.transfer(weth.address, alice.address, pool.address, amount);
       await bento.transfer(usdc.address, alice.address, pool.address, amount);
 
-      await expect(pool.mint(aliceEncoded)).to.emit(pool, "Mint").withArgs(alice.address, amount, amount, alice.address, expectedLiquidity);
+      await expect(pool.mint(aliceEncoded))
+        .to.emit(pool, "Mint")
+        .withArgs(alice.address, amount, amount, alice.address, expectedLiquidity);
       expect(await pool.totalSupply()).gt(1);
       await bento.transfer(dai.address, alice.address, daiUsdcPool.address, amount);
       await bento.transfer(usdc.address, alice.address, daiUsdcPool.address, amount);
@@ -317,7 +323,10 @@ describe("Router", function () {
 
       let liquidity = BigNumber.from(10).pow(10);
 
-      const burnData = ethers.utils.defaultAbiCoder.encode(["address", "address", "bool"], [weth.address, alice.address, true]);
+      const burnData = ethers.utils.defaultAbiCoder.encode(
+        ["address", "address", "bool"],
+        [weth.address, alice.address, true]
+      );
 
       let burnLiquidityPromise = router.burnLiquiditySingle(pool.address, liquidity, burnData, 1);
 

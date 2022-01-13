@@ -22,7 +22,6 @@ module.exports = {
     "TridentERC721",
     // Covered elsewhere
     "TridentBatchable",
-    "TridentOwnable",
   ],
   mocha: {
     fgrep: "[skip-on-coverage]",

@@ -2,16 +2,14 @@
 
 pragma solidity >=0.8.0;
 
-import "../interfaces/IPoolFactory.sol";
-import "../abstract/PoolDeployer.sol";
-import "../TridentRouter.sol";
+import "../router/Router.sol";
 
-contract RouterMock is TridentRouter {
+contract RouterMock is Router {
     constructor(
-        IBentoBoxMinimal bento,
-        IMasterDeployer masterDeployer,
-        address wETH
-    ) TridentRouter(bento, masterDeployer, wETH) {
+        address _bentoBox,
+        address _masterDeployer,
+        address _wrappedNative
+    ) Router(_bentoBox, _masterDeployer, _wrappedNative) {
         //
     }
 }

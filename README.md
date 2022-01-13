@@ -14,7 +14,7 @@ TRIDENT 🔱 is a newly developed AMM and routing system from [SushiSwap](https:
 | Contract                   | Address                                    |
 | -------------------------- | ------------------------------------------ |
 | BentoBox                   | 0xc381a85ed7C7448Da073b7d6C9d4cBf1Cbf576f0 |
-| TridentRouter              | 0xabBf36386800A2676737Fdde61905BbF123284b3 |
+| Router                     | 0xabBf36386800A2676737Fdde61905BbF123284b3 |
 | MasterDeployer             | 0xcbD2dB3c724fA4349618fb390f736185Db21a1A1 |
 | ConstantProductPoolFactory | 0xD6A52478FB50f0aaB6E3Bf86f691c0D61DF18f38 |
 | HybridPoolFactory          | 0x4fbeDaEcb25C8094a5bd3b75CD51F02EC956Ad31 |
@@ -60,8 +60,8 @@ For instance, if a user were to place a limit order or provide liquidity for a T
 - [MasterDeployer](./contracts/deployer/MasterDeployer.sol) is used to add/remove factories for various pool types. Users call `MasterDeployer` to deploy new pools from whitelisted factories.
 - `MasterDeployer` also controls the fee percentage that goes to [xSUSHI](https://etherscan.io/address/0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272#code), the `barFeeTo` address.
 - `MasterDeployer` has an `owner` (ops multisig), that'll control these parameters.
-- [TridentRouter](./contracts/TridentRouter.sol) is the main contract that allows interacting with various pools. It is used to initiate swaps and manage liquidity.
-- `TridentRouter` is the contract that gets whitelisted in BentoBox as the master app to transfer user tokens in/out of Trident pools and BentoBox.
+- [Router](./contracts/Router.sol) is the main contract that allows interacting with various pools. It is used to initiate swaps and manage liquidity.
+- `Router` is the contract that gets whitelisted in BentoBox as the master app to transfer user tokens in/out of Trident pools and BentoBox.
 
 ## Tines: Routing Engine
 

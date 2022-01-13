@@ -1,15 +1,16 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.8.0;
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-import "../libraries/RebaseLibrary.sol";
-import "../libraries/SafeCast.sol";
+pragma solidity >= 0.8.0;
+
+import "../libraries/Cast.sol";
+import "../libraries/Rebase.sol";
 
 contract RebasingMock {
 
-    using SafeCast for uint256;
-    using RebaseLibrary for Rebase;
+    using Cast for uint256;
+    using Rebase for Total;
 
-    Rebase public total;
+    Total public total;
 
     function toBase(uint256  elastic) public view returns (uint256 base) {
         base =  total.toBase(elastic);

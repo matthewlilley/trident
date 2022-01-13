@@ -21,7 +21,9 @@ task("cpp:deploy", "Constant Product Pool deploy")
   .setAction(async function ({ tokenA, tokenB, fee, twap, verify }, { ethers, run }) {
     const masterDeployer = await ethers.getContract<MasterDeployer>("MasterDeployer");
 
-    const constantProductPoolFactory = await ethers.getContract<ConstantProductPoolFactory>("ConstantProductPoolFactory");
+    const constantProductPoolFactory = await ethers.getContract<ConstantProductPoolFactory>(
+      "ConstantProductPoolFactory"
+    );
 
     const deployData = ethers.utils.defaultAbiCoder.encode(
       ["address", "address", "uint256", "bool"],

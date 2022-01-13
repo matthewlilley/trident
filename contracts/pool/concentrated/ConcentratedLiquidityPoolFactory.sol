@@ -2,18 +2,19 @@
 
 pragma solidity >=0.8.0;
 
+import "../../abstract/Factory.sol";
+
+import "./interfaces/IConcentratedLiquidityPool.sol";
 import "./ConcentratedLiquidityPool.sol";
-import "../../abstract/PoolDeployer.sol";
-import "../../interfaces/IConcentratedLiquidityPool.sol";
 
 /// @notice Contract for deploying Trident exchange Concentrated Liquidity Pool with configurations.
 /// @author Mudit Gupta.
-contract ConcentratedLiquidityPoolFactory is PoolDeployer {
-    constructor(address _masterDeployer) PoolDeployer(_masterDeployer) {}
+contract ConcentratedLiquidityPoolFactory is Factory {
+    constructor(address _masterDeployer) Factory(_masterDeployer) {}
 
     error WrongTokenOrder();
 
-    function deployPool(bytes memory _deployData) external returns (address pool) {
+    function deployPool(bytes memory _deployData) external override returns (address pool) {
         (address tokenA, address tokenB, uint24 swapFee, uint160 price, uint24 tickSpacing) = abi.decode(
             _deployData,
             (address, address, uint24, uint160, uint24)

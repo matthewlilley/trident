@@ -2,18 +2,19 @@
 
 pragma solidity >=0.8.0;
 
-import "../../interfaces/IBentoBoxMinimal.sol";
-import "../../interfaces/IMasterDeployer.sol";
-import "../../interfaces/ITridentCallee.sol";
-import "../../interfaces/ITridentRouter.sol";
-import "../../interfaces/IPositionManager.sol";
-import "../../interfaces/IConcentratedLiquidityPool.sol";
-import "../../libraries/FullMath.sol";
-import "../../libraries/TickMath.sol";
-import "../../libraries/UnsafeMath.sol";
-import "../../libraries/DyDxMath.sol";
-import "../../libraries/SwapLib.sol";
-import "../../libraries/Ticks.sol";
+import "../../deployer/IMasterDeployer.sol";
+import "../../interfaces/IBentoBoxV1.sol";
+
+import "../ITridentCallee.sol";
+
+import "./interfaces/IConcentratedLiquidityPool.sol";
+import "./interfaces/IPositionManager.sol";
+import "./libraries/FullMath.sol";
+import "./libraries/TickMath.sol";
+import "./libraries/UnsafeMath.sol";
+import "./libraries/DyDxMath.sol";
+import "./libraries/SwapLib.sol";
+import "./libraries/Ticks.sol";
 
 /// @notice Trident Concentrated liquidity pool implementation.
 /// @dev Amounts are considered to be in Bentobox shared
@@ -32,7 +33,7 @@ contract ConcentratedLiquidityPool is IConcentratedLiquidityPoolStruct {
     uint128 internal immutable MAX_TICK_LIQUIDITY;
 
     address internal immutable barFeeTo;
-    IBentoBoxMinimal internal immutable bento;
+    IBentoBoxV1 internal immutable bento;
     IMasterDeployer internal immutable masterDeployer;
 
     address internal immutable token0;
@@ -99,7 +100,7 @@ contract ConcentratedLiquidityPool is IConcentratedLiquidityPoolStruct {
         token1 = _token1;
         swapFee = _swapFee;
         tickSpacing = _tickSpacing;
-        bento = IBentoBoxMinimal(_masterDeployer.bento());
+        bento = IBentoBoxV1(_masterDeployer.bento());
         barFeeTo = _masterDeployer.barFeeTo();
         barFee = _masterDeployer.barFee();
         masterDeployer = _masterDeployer;
@@ -598,7 +599,7 @@ contract ConcentratedLiquidityPool is IConcentratedLiquidityPoolStruct {
             uint24 _tickSpacing,
             uint24 _swapFee,
             address _barFeeTo,
-            IBentoBoxMinimal _bento,
+            IBentoBoxV1 _bento,
             IMasterDeployer _masterDeployer,
             address _token0,
             address _token1

@@ -38,7 +38,7 @@ Using the `feeGrowthAbove` of a range's upper tick and the `feeGrowthBelow` of t
 
 ## Pool Manager
 
-The `ConcentratedLiquidityPool` contract does not conform to the `IPool` interface, except for the `swap(bytes memory data)` function so that trading can happen throught the `TridentRouter` contract.
+The `ConcentratedLiquidityPool` contract does not conform to the `IPool` interface, except for the `swap(bytes memory data)` function so that trading can happen throught the `Router` contract.
 Users should mint their liquidity positions via the the `ConcentratedLiquidityPoolManager` contract instead. Doing so will mint them an NFT position which will have the claim to the underlying tokens and to any accrued fees by calling `burn` or `colllect` on the manager contract. Liquidity positions minted via the manager contract can also be staked in the `ConcentratedLiquidityPoolStaker` contract. Users can use their NFT position to subscribe to several incentives at once.
 
 ## Key state variables

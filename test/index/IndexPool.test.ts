@@ -27,7 +27,13 @@ const poolSwapFee: number | BigNumber = getBigNumber("1", 13);
 
 // -------------         -------------
 
-function encodeSwapData(tokenIn: string, tokenOut: string, recipient: string, unwrapBento: boolean, amountIn: BigNumber | number): string {
+function encodeSwapData(
+  tokenIn: string,
+  tokenOut: string,
+  recipient: string,
+  unwrapBento: boolean,
+  amountIn: BigNumber | number
+): string {
   return ethers.utils.defaultAbiCoder.encode(
     ["address", "address", "address", "bool", "uint256"],
     [tokenIn, tokenOut, recipient, unwrapBento, amountIn]
@@ -51,7 +57,7 @@ describe("IndexPool test", function () {
     const Bento = await ethers.getContractFactory("BentoBoxV1");
     const Deployer = await ethers.getContractFactory("MasterDeployer");
     const PoolFactory = await ethers.getContractFactory("IndexPoolFactory");
-    const SwapRouter = await ethers.getContractFactory("TridentRouter");
+    const Router = await ethers.getContractFactory("Router");
     Pool = await ethers.getContractFactory("IndexPool");
     [alice, feeTo] = await ethers.getSigners();
     // deploy erc20's
@@ -70,7 +76,7 @@ describe("IndexPool test", function () {
 
     tridentPoolFactory = await PoolFactory.deploy(masterDeployer.address);
     await tridentPoolFactory.deployed();
-    router = await SwapRouter.deploy(bento.address, masterDeployer.address, weth.address);
+    router = await Router.deploy(bento.address, masterDeployer.address, weth.address);
     await router.deployed();
 
     // Whitelist pool factory in master deployer
@@ -95,10 +101,15 @@ describe("IndexPool test", function () {
     );
 
     const tokens: string[] =
-      usdt.address.toUpperCase() < usdc.address.toUpperCase() ? [usdt.address, usdc.address] : [usdc.address, usdt.address];
+      usdt.address.toUpperCase() < usdc.address.toUpperCase()
+        ? [usdt.address, usdc.address]
+        : [usdc.address, usdt.address];
 
     // address[], uint256[], uint256
-    const deployData = ethers.utils.defaultAbiCoder.encode(["address[]", "uint256[]", "uint256"], [tokens, tokenWeights, poolSwapFee]);
+    const deployData = ethers.utils.defaultAbiCoder.encode(
+      ["address[]", "uint256[]", "uint256"],
+      [tokens, tokenWeights, poolSwapFee]
+    );
 
     let tx = await (await masterDeployer.deployPool(tridentPoolFactory.address, deployData)).wait();
     const pool: Contract = await Pool.attach(tx.events[1].args.pool);

@@ -36,7 +36,16 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS === "true",
     // outputFile: `gas-${Date.now()}.json`,
     // outputFile: "gas.json",
-    excludeContracts: ["examples", "flat", "mocks", "pool/concentrated", "pool/franchised", "pool/hybrid", "pool/index", "TridentERC721"],
+    excludeContracts: [
+      "examples",
+      "flat",
+      "mocks",
+      "pool/concentrated",
+      "pool/franchised",
+      "pool/hybrid",
+      "pool/index",
+      "TridentERC721",
+    ],
     // onlyCalledMethods: true,
     // showTimeSpent: true,
   },
@@ -70,11 +79,11 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    localhost: {
-      live: false,
-      saveDeployments: true,
-      tags: ["local"],
-    },
+    // localhost: {
+    //   live: false,
+    //   saveDeployments: true,
+    //   tags: ["local"],
+    // },
     hardhat: {
       forking: {
         enabled: process.env.FORKING === "true",
@@ -83,7 +92,7 @@ const config: HardhatUserConfig = {
       },
       allowUnlimitedContractSize: true,
       live: false,
-      saveDeployments: true,
+      // saveDeployments: true,
       tags: ["test", "local"],
       // Solidity-coverage overrides gasPrice to 1 which is not compatible with EIP1559
       hardfork: process.env.CODE_COVERAGE ? "berlin" : "london",
@@ -343,6 +352,14 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 300000,
     //bail: true,
+  },
+  external: {
+    contracts: [
+      {
+        artifacts: "node_modules/@sushiswap/bentobox/artifacts",
+        deploy: "node_modules/@sushiswap/bentobox/deploy",
+      },
+    ],
   },
 };
 

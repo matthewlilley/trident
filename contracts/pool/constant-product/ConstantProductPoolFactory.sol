@@ -2,15 +2,16 @@
 
 pragma solidity >=0.8.0;
 
+import "../../abstract/Factory.sol";
+
 import "./ConstantProductPool.sol";
-import "../../abstract/PoolDeployer.sol";
 
 /// @notice Contract for deploying Trident exchange Constant Product Pool with configurations.
 /// @author Mudit Gupta.
-contract ConstantProductPoolFactory is PoolDeployer {
-    constructor(address _masterDeployer) PoolDeployer(_masterDeployer) {}
+contract ConstantProductPoolFactory is Factory {
+    constructor(address _masterDeployer) Factory(_masterDeployer) {}
 
-    function deployPool(bytes memory _deployData) external returns (address pool) {
+    function deployPool(bytes memory _deployData) external override returns (address pool) {
         (address tokenA, address tokenB, uint256 swapFee, bool twapSupport) = abi.decode(_deployData, (address, address, uint256, bool));
 
         if (tokenA > tokenB) {

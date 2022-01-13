@@ -58,7 +58,7 @@ describe("HybridPool Typescript == Solidity check", function () {
     const Bento = await ethers.getContractFactory("BentoBoxV1");
     const Deployer = await ethers.getContractFactory("MasterDeployer");
     const PoolFactory = await ethers.getContractFactory("HybridPoolFactory");
-    const SwapRouter = await ethers.getContractFactory("TridentRouter");
+    const Router = await ethers.getContractFactory("Router");
     Pool = await ethers.getContractFactory("HybridPool");
 
     weth = await ERC20.deploy("WETH", "WETH", getBigNumber("1000000000000000000"));
@@ -76,7 +76,7 @@ describe("HybridPool Typescript == Solidity check", function () {
 
     tridentPoolFactory = await PoolFactory.deploy(masterDeployer.address);
     await tridentPoolFactory.deployed();
-    router = await SwapRouter.deploy(bento.address, masterDeployer.address, weth.address);
+    router = await Router.deploy(bento.address, masterDeployer.address, weth.address);
     await router.deployed();
 
     // Whitelist pool factory in master deployer
@@ -101,7 +101,9 @@ describe("HybridPool Typescript == Solidity check", function () {
     );
 
     const [address0, address1] =
-      usdt.address.toUpperCase() < usdc.address.toUpperCase() ? [usdt.address, usdc.address] : [usdc.address, usdt.address];
+      usdt.address.toUpperCase() < usdc.address.toUpperCase()
+        ? [usdt.address, usdc.address]
+        : [usdc.address, usdt.address];
     const deployData = ethers.utils.defaultAbiCoder.encode(
       ["address", "address", "uint256", "uint256"],
       [address0, address1, Math.round(fee * 10_000), A]
@@ -113,7 +115,8 @@ describe("HybridPool Typescript == Solidity check", function () {
     );
 
     const [jsVal0, bnVal0] = getIntegerRandomValueWithMin(res0exp, MINIMUM_LIQUIDITY);
-    const [jsVal1, bnVal1] = res1exp == undefined ? [jsVal0, bnVal0] : getIntegerRandomValueWithMin(res1exp, MINIMUM_LIQUIDITY);
+    const [jsVal1, bnVal1] =
+      res1exp == undefined ? [jsVal0, bnVal0] : getIntegerRandomValueWithMin(res1exp, MINIMUM_LIQUIDITY);
     await bento.transfer(usdt.address, alice.address, pool.address, bnVal0);
     await bento.transfer(usdc.address, alice.address, pool.address, bnVal1);
     await pool.mint(ethers.utils.defaultAbiCoder.encode(["address"], [alice.address]));
@@ -136,7 +139,10 @@ describe("HybridPool Typescript == Solidity check", function () {
     const [jsValue, bnValue] = getIntegerRandomValue(swapAmountExp);
     const [t0, t1]: string[] = swapDirection ? [usdt.address, usdc.address] : [usdc.address, usdt.address];
 
-    poolRouterInfo.updateReserves(await bento.balanceOf(usdt.address, pool.address), await bento.balanceOf(usdc.address, pool.address));
+    poolRouterInfo.updateReserves(
+      await bento.balanceOf(usdt.address, pool.address),
+      await bento.balanceOf(usdc.address, pool.address)
+    );
     if (poolRouterInfo.reserve0 < MINIMUM_LIQUIDITY || poolRouterInfo.reserve1 < MINIMUM_LIQUIDITY) {
       console.log("Low liquidity - skip test");
       return; // Too low liquidity
@@ -159,7 +165,10 @@ describe("HybridPool Typescript == Solidity check", function () {
     const amountOutPrediction = poolRouterInfo.calcOutByIn(jsValue, swapDirection).out;
 
     //console.log('prediction', Math.abs(amountOutPrediction/amountOutPool-1), amountOutPrediction, amountOutPool.toString());
-    expect(areCloseValues(amountOutPrediction, amountOutPoolBN, 1e-9)).equals(true, "swap amount not close enough to predicted amount");
+    expect(areCloseValues(amountOutPrediction, amountOutPoolBN, 1e-9)).equals(
+      true,
+      "swap amount not close enough to predicted amount"
+    );
     const reserveOut = swapDirection ? poolRouterInfo.reserve1 : poolRouterInfo.reserve0;
     if (reserveOut.sub(amountOutPoolBN).lt(MINIMUM_LIQUIDITY)) {
       swapDirection = !swapDirection;
@@ -171,10 +180,10 @@ describe("HybridPool Typescript == Solidity check", function () {
 
     // console.log('back1', Math.abs(amounInExpected/jsValue-1), amounInExpected, jsValue);
     // console.log('back2', Math.abs(amountOutPrediction/amountOutPrediction2-1), amountOutPrediction, amountOutPrediction2);
-    expect(areCloseValues(amounInExpected, jsValue, 1e-12) || areCloseValues(amountOutPrediction, amountOutPrediction2, 1e-12)).equals(
-      true,
-      "values not close enough"
-    );
+    expect(
+      areCloseValues(amounInExpected, jsValue, 1e-12) ||
+        areCloseValues(amountOutPrediction, amountOutPrediction2, 1e-12)
+    ).equals(true, "values not close enough");
     swapDirection = !swapDirection;
   }
 

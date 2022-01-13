@@ -2,10 +2,11 @@
 
 pragma solidity >=0.8.0;
 
-import "../../libraries/Ticks.sol";
-import "../../interfaces/IBentoBoxMinimal.sol";
-import "../../interfaces/IConcentratedLiquidityPool.sol";
-import { IConcentratedLiquidityPoolManager as IPoolManager } from "../../interfaces/IConcentratedLiquidityPoolManager.sol";
+import "../../interfaces/IBentoBoxV1.sol";
+
+import "./libraries/Ticks.sol";
+import "./interfaces/IConcentratedLiquidityPool.sol";
+import { IConcentratedLiquidityPoolManager as IPoolManager } from "./interfaces/IConcentratedLiquidityPoolManager.sol";
 
 /// @notice Trident Concentrated Liquidity Pool periphery contract that combines non-fungible position management and staking.
 contract ConcentratedLiquidityPoolStaker {
@@ -29,7 +30,7 @@ contract ConcentratedLiquidityPoolStaker {
         uint32 timestamp;
     }
 
-    IBentoBoxMinimal public immutable bento;
+    IBentoBoxV1 public immutable bento;
     IPoolManager public poolManager;
 
     mapping(IConcentratedLiquidityPool => uint256) public incentiveCount;
@@ -40,7 +41,7 @@ contract ConcentratedLiquidityPoolStaker {
 
     constructor(IPoolManager _poolManager) {
         poolManager = _poolManager;
-        IBentoBoxMinimal _bento = IBentoBoxMinimal(_poolManager.bento());
+        IBentoBoxV1 _bento = IBentoBoxV1(_poolManager.bento());
         _bento.registerProtocol();
         bento = _bento;
     }

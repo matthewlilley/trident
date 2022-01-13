@@ -2,15 +2,16 @@
 
 pragma solidity >=0.8.0;
 
+import "../../abstract/Factory.sol";
+
 import "./IndexPool.sol";
-import "../../abstract/PoolDeployer.sol";
 
 /// @notice Contract for deploying Trident exchange Index Pool with configurations.
 /// @author Mudit Gupta
-contract IndexPoolFactory is PoolDeployer {
-    constructor(address _masterDeployer) PoolDeployer(_masterDeployer) {}
+contract IndexPoolFactory is Factory {
+    constructor(address _masterDeployer) Factory(_masterDeployer) {}
 
-    function deployPool(bytes memory _deployData) external returns (address pool) {
+    function deployPool(bytes memory _deployData) external override returns (address pool) {
         (address[] memory tokens, uint136[] memory weights, uint256 swapFee) = abi.decode(_deployData, (address[], uint136[], uint256));
 
         // @dev Strips any extra data.

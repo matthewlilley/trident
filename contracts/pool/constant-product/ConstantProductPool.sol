@@ -2,17 +2,19 @@
 
 pragma solidity >=0.8.0;
 
-import "../../interfaces/IBentoBoxMinimal.sol";
-import "../../interfaces/IMasterDeployer.sol";
-import "../../interfaces/IPool.sol";
-import "../../interfaces/ITridentCallee.sol";
-import "../../libraries/TridentMath.sol";
-import "../../TridentERC20.sol";
+import "../../abstract/ERC20.sol";
+import "../../deployer/IMasterDeployer.sol";
+import "../../interfaces/IBentoBoxV1.sol";
+
+import "../ITridentCallee.sol";
+import "../IPool.sol";
+
+import "./ConstantProduct.sol";
 
 /// @notice Trident exchange pool template with constant product formula for swapping between an ERC-20 token pair.
 /// @dev The reserves are stored as bento shares.
 ///      The curve is applied to shares as well. This pool does not care about the underlying amounts.
-contract ConstantProductPool is IPool, TridentERC20 {
+contract ConstantProductPool is IPool, ERC20 {
     event Mint(address indexed sender, uint256 amount0, uint256 amount1, address indexed recipient, uint256 liquidity);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed recipient, uint256 liquidity);
     event Sync(uint256 reserve0, uint256 reserve1);
@@ -26,7 +28,7 @@ contract ConstantProductPool is IPool, TridentERC20 {
     uint256 internal immutable MAX_FEE_MINUS_SWAP_FEE;
 
     address public immutable barFeeTo;
-    IBentoBoxMinimal public immutable bento;
+    IBentoBoxV1 public immutable bento;
     IMasterDeployer public immutable masterDeployer;
     address public immutable token0;
     address public immutable token1;
@@ -70,7 +72,7 @@ contract ConstantProductPool is IPool, TridentERC20 {
         }
         barFee = IMasterDeployer(_masterDeployer).barFee();
         barFeeTo = IMasterDeployer(_masterDeployer).barFeeTo();
-        bento = IBentoBoxMinimal(IMasterDeployer(_masterDeployer).bento());
+        bento = IBentoBoxV1(IMasterDeployer(_masterDeployer).bento());
         masterDeployer = IMasterDeployer(_masterDeployer);
         unlocked = 1;
         if (_twapSupport) blockTimestampLast = uint32(block.timestamp);
@@ -83,7 +85,7 @@ contract ConstantProductPool is IPool, TridentERC20 {
         (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) = _getReserves();
         (uint256 balance0, uint256 balance1) = _balance();
 
-        uint256 computed = TridentMath.sqrt(balance0 * balance1);
+        uint256 computed = ConstantProduct.sqrt(balance0 * balance1);
         uint256 amount0 = balance0 - _reserve0;
         uint256 amount1 = balance1 - _reserve1;
 
@@ -133,7 +135,7 @@ contract ConstantProductPool is IPool, TridentERC20 {
             balance1 -= amount1;
         }
         _update(balance0, balance1, _reserve0, _reserve1, _blockTimestampLast);
-        kLast = TridentMath.sqrt(balance0 * balance1);
+        kLast = ConstantProduct.sqrt(balance0 * balance1);
 
         withdrawnAmounts = new TokenAmount[](2);
         withdrawnAmounts[0] = TokenAmount({token: address(token0), amount: amount0});
@@ -153,7 +155,7 @@ contract ConstantProductPool is IPool, TridentERC20 {
         uint256 amount0 = (liquidity * _reserve0) / _totalSupply;
         uint256 amount1 = (liquidity * _reserve1) / _totalSupply;
 
-        kLast = TridentMath.sqrt((_reserve0 - amount0) * (_reserve1 - amount1));
+        kLast = ConstantProduct.sqrt((_reserve0 - amount0) * (_reserve1 - amount1));
 
         _burn(address(this), liquidity);
 
@@ -297,7 +299,7 @@ contract ConstantProductPool is IPool, TridentERC20 {
         _totalSupply = totalSupply;
         uint256 _kLast = kLast;
         if (_kLast != 0) {
-            computed = TridentMath.sqrt(uint256(_reserve0) * _reserve1);
+            computed = ConstantProduct.sqrt(uint256(_reserve0) * _reserve1);
             if (computed > _kLast) {
                 // @dev `barFee` % of increase in liquidity.
                 uint256 _barFee = barFee;

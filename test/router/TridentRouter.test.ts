@@ -1,12 +1,12 @@
 import { deployments, ethers } from "hardhat";
-import { BentoBoxV1, ConstantProductPool__factory, ERC20Mock, MasterDeployer, TridentRouter, WETH9 } from "../../types";
+import { BentoBoxV1, ConstantProductPool__factory, ERC20Mock, MasterDeployer, Router, WETH9 } from "../../types";
 import { expect } from "chai";
 import { initializedConstantProductPool } from "../fixtures";
 import { customError } from "../utilities";
 
 describe("Router", function () {
   before(async function () {
-    await deployments.fixture(["TridentRouter"]);
+    await deployments.fixture(["Router"]);
   });
 
   beforeEach(async function () {
@@ -15,12 +15,12 @@ describe("Router", function () {
 
   describe("receive()", function () {
     it("Succeeds when msg.sender is WETH", async () => {
-      const router = await ethers.getContract<TridentRouter>("TridentRouter");
+      const router = await ethers.getContract<Router>("Router");
       const weth9 = await ethers.getContract<WETH9>("WETH9");
       await expect(weth9.transfer(router.address, 1)).to.not.be.reverted;
     });
     it("Reverts when msg.sender is not WETH", async () => {
-      const router = await ethers.getContract<TridentRouter>("TridentRouter");
+      const router = await ethers.getContract<Router>("Router");
       const deployer = await ethers.getNamedSigner("deployer");
       await expect(
         deployer.sendTransaction({
@@ -28,14 +28,14 @@ describe("Router", function () {
           to: router.address,
           value: ethers.utils.parseEther("1"),
         })
-      ).to.be.revertedWith("Transaction reverted without a reason string");
+      ).to.be.revertedWith("NotWrappedNative");
     });
   });
 
   describe("#exactInputSingle", function () {
     //
     it("Reverts when output is less than minimum", async () => {
-      const router = await ethers.getContract<TridentRouter>("TridentRouter");
+      const router = await ethers.getContract<Router>("Router");
 
       const pool = await initializedConstantProductPool();
 

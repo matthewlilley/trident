@@ -1,6 +1,6 @@
 import { ContractFactory } from "@ethersproject/contracts";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BentoBoxV1, MasterDeployer, TridentRouter } from "../../../types";
+import { BentoBoxV1, MasterDeployer, Router } from "../../../types";
 import { ethers } from "hardhat";
 import { getBigNumber } from "@sushiswap/tines";
 
@@ -10,7 +10,7 @@ export class TestContext {
 
   public MasterDeployer!: MasterDeployer;
   public Bento!: BentoBoxV1;
-  public TridentRouter!: TridentRouter;
+  public Router!: Router;
 
   public Erc20Factory!: ContractFactory;
 
@@ -29,16 +29,16 @@ export class TestContext {
     ).deploy(17, this.FeeTo.address, this.Bento.address)) as MasterDeployer;
     await this.MasterDeployer.deployed();
 
-    this.TridentRouter = (await (
-      await ethers.getContractFactory("TridentRouter")
-    ).deploy(this.Bento.address, this.MasterDeployer.address, weth.address)) as TridentRouter;
-    await this.TridentRouter.deployed();
+    this.Router = (await (
+      await ethers.getContractFactory("Router")
+    ).deploy(this.Bento.address, this.MasterDeployer.address, weth.address)) as Router;
+    await this.Router.deployed();
 
-    await this.Bento.whitelistMasterContract(this.TridentRouter.address, true);
+    await this.Bento.whitelistMasterContract(this.Router.address, true);
 
     await this.Bento.setMasterContractApproval(
       this.Signer.address,
-      this.TridentRouter.address,
+      this.Router.address,
       true,
       0,
       "0x0000000000000000000000000000000000000000000000000000000000000000",

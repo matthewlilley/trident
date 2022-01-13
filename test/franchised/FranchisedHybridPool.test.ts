@@ -46,7 +46,10 @@ describe("Franchised hybrid pool", function () {
     let initialLiquidity = await pool.balanceOf(alice.address);
     let liquidity = BigNumber.from(10).pow(10);
 
-    const burnData = ethers.utils.defaultAbiCoder.encode(["address", "address", "bool"], [weth.address, alice.address, true]);
+    const burnData = ethers.utils.defaultAbiCoder.encode(
+      ["address", "address", "bool"],
+      [weth.address, alice.address, true]
+    );
 
     let burnLiquidityPromise = router.burnLiquiditySingle(pool.address, liquidity, burnData, 1);
 
@@ -64,7 +67,7 @@ export async function initialize() {
   const Bento = await ethers.getContractFactory("BentoBoxV1");
   const Deployer = await ethers.getContractFactory("MasterDeployer");
   const PoolFactory = await ethers.getContractFactory("FranchisedHybridPoolFactory");
-  const TridentRouter = await ethers.getContractFactory("TridentRouter");
+  const Router = await ethers.getContractFactory("Router");
   const Pool = await ethers.getContractFactory("FranchisedHybridPool");
   const WhiteListManager = await ethers.getContractFactory("WhiteListManager");
   const whiteListManager = await WhiteListManager.deploy();
@@ -79,7 +82,7 @@ export async function initialize() {
 
   tridentPoolFactory = await PoolFactory.deploy(masterDeployer.address);
   await tridentPoolFactory.deployed();
-  router = await TridentRouter.deploy(bento.address, masterDeployer.address, weth.address);
+  router = await Router.deploy(bento.address, masterDeployer.address, weth.address);
   await router.deployed();
 
   // Whitelist pool factory in master deployer
@@ -114,5 +117,9 @@ export async function initialize() {
 
   whiteListManager.whitelistAccount(alice.address, true);
 
-  pool = await Pool.attach((await (await masterDeployer.deployPool(tridentPoolFactory.address, deployData)).wait()).events[0].args[1]);
+  pool = await Pool.attach(
+    (
+      await (await masterDeployer.deployPool(tridentPoolFactory.address, deployData)).wait()
+    ).events[0].args[1]
+  );
 }

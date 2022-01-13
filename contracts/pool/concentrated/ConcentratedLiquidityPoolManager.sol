@@ -2,20 +2,21 @@
 
 pragma solidity >=0.8.0;
 
-import "../../interfaces/IMasterDeployer.sol";
-import "../../interfaces/IBentoBoxMinimal.sol";
-import "../../interfaces/ITridentRouter.sol";
-import "../../interfaces/IConcentratedLiquidityPoolManager.sol";
-import "../../interfaces/IConcentratedLiquidityPool.sol";
-import "../../interfaces/IPositionManager.sol";
-import "../../libraries/FullMath.sol";
-import "../../libraries/TickMath.sol";
-import "../../libraries/DyDxMath.sol";
-import "../../TridentBatchable.sol";
-import "../../TridentERC721.sol";
+import "../../abstract/Batch.sol";
+import "../../abstract/TridentERC721.sol";
+import "../../interfaces/IBentoBoxV1.sol";
+
+import "../../deployer/IMasterDeployer.sol";
+
+import "./interfaces/IConcentratedLiquidityPoolManager.sol";
+import "./interfaces/IConcentratedLiquidityPool.sol";
+import "./interfaces/IPositionManager.sol";
+import "./libraries/FullMath.sol";
+import "./libraries/TickMath.sol";
+import "./libraries/DyDxMath.sol";
 
 /// @notice Trident Concentrated Liquidity Pool periphery contract that combines non-fungible position management and staking.
-contract ConcentratedLiquidityPoolManager is IConcentratedLiquidityPoolManagerStruct, IPositionManager, TridentERC721, TridentBatchable {
+contract ConcentratedLiquidityPoolManager is IConcentratedLiquidityPoolManagerStruct, IPositionManager, TridentERC721, Batch {
     event IncreaseLiquidity(address indexed pool, address indexed owner, uint256 indexed positionId, uint128 liquidity);
     event DecreaseLiquidity(address indexed pool, address indexed owner, uint256 indexed positionId, uint128 liquidity);
 
@@ -23,14 +24,14 @@ contract ConcentratedLiquidityPoolManager is IConcentratedLiquidityPoolManagerSt
     address internal cachedPool = address(1);
 
     address internal immutable wETH;
-    IBentoBoxMinimal public immutable bento;
+    IBentoBoxV1 public immutable bento;
     IMasterDeployer public immutable masterDeployer;
 
     mapping(uint256 => Position) public positions;
 
     constructor(address _masterDeployer, address _wETH) {
         masterDeployer = IMasterDeployer(_masterDeployer);
-        IBentoBoxMinimal _bento = IBentoBoxMinimal(IMasterDeployer(_masterDeployer).bento());
+        IBentoBoxV1 _bento = IBentoBoxV1(IMasterDeployer(_masterDeployer).bento());
         _bento.registerProtocol();
         bento = _bento;
         wETH = _wETH;

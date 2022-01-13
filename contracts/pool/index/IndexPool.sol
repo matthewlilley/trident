@@ -2,23 +2,24 @@
 
 pragma solidity >=0.8.0;
 
-import "../../interfaces/IBentoBoxMinimal.sol";
-import "../../interfaces/IMasterDeployer.sol";
-import "../../interfaces/IPool.sol";
-import "../../interfaces/ITridentCallee.sol";
-import "../../TridentERC20.sol";
+import "../../abstract/ERC20.sol";
+import "../../deployer/IMasterDeployer.sol";
+import "../../interfaces/IBentoBoxV1.sol";
+
+import "../IPool.sol";
+import "../ITridentCallee.sol";
 
 /// @notice Trident exchange pool template with constant mean formula for swapping among an array of ERC-20 tokens.
 /// @dev The reserves are stored as bento shares.
 ///      The curve is applied to shares as well. This pool does not care about the underlying amounts.
-contract IndexPool is IPool, TridentERC20 {
+contract IndexPool is IPool, ERC20 {
     event Mint(address indexed sender, address tokenIn, uint256 amountIn, address indexed recipient);
     event Burn(address indexed sender, address tokenOut, uint256 amountOut, address indexed recipient);
 
     uint256 public immutable swapFee;
 
     address public immutable barFeeTo;
-    IBentoBoxMinimal public immutable bento;
+    IBentoBoxV1 public immutable bento;
     IMasterDeployer public immutable masterDeployer;
 
     uint256 internal constant BASE = 10**18;
@@ -80,7 +81,7 @@ contract IndexPool is IPool, TridentERC20 {
         swapFee = _swapFee;
         barFee = IMasterDeployer(_masterDeployer).barFee();
         barFeeTo = IMasterDeployer(_masterDeployer).barFeeTo();
-        bento = IBentoBoxMinimal(IMasterDeployer(_masterDeployer).bento());
+        bento = IBentoBoxV1(IMasterDeployer(_masterDeployer).bento());
         masterDeployer = IMasterDeployer(_masterDeployer);
         unlocked = 1;
     }

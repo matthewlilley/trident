@@ -2,20 +2,22 @@
 
 pragma solidity >=0.8.0;
 
-import "../../interfaces/IBentoBoxMinimal.sol";
-import "../../interfaces/IMasterDeployer.sol";
-import "../../interfaces/IPool.sol";
-import "../../interfaces/ITridentCallee.sol";
-import "../../libraries/MathUtils.sol";
-import "../../libraries/RebaseLibrary.sol";
-import "../../TridentERC20.sol";
+import "../../abstract/ERC20.sol";
+import "../../deployer/IMasterDeployer.sol";
+import "../../interfaces/IBentoBoxV1.sol";
+import "../../libraries/Rebase.sol";
+import "../../pool/IPool.sol";
+
+import "../ITridentCallee.sol";
+
+import "./Hybrid.sol";
 
 /// @notice Trident exchange pool template with hybrid like-kind formula for swapping between an ERC-20 token pair.
 /// @dev The reserves are stored as bento shares. However, the stableswap invariant is applied to the underlying amounts.
 ///      The API uses the underlying amounts.
-contract HybridPool is IPool, TridentERC20 {
-    using MathUtils for uint256;
-    using RebaseLibrary for Rebase;
+contract HybridPool is IPool, ERC20 {
+    using Hybrid for uint256;
+    using Rebase for Total;
 
     event Mint(address indexed sender, uint256 amount0, uint256 amount1, address indexed recipient, uint256 liquidity);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed recipient, uint256 liquidity);
@@ -29,7 +31,7 @@ contract HybridPool is IPool, TridentERC20 {
     uint256 internal constant MAX_FEE = 10000; // @dev 100%.
     uint256 public immutable swapFee;
 
-    IBentoBoxMinimal public immutable bento;
+    IBentoBoxV1 public immutable bento;
     IMasterDeployer public immutable masterDeployer;
     address public immutable barFeeTo;
     address public immutable token0;
@@ -74,12 +76,12 @@ contract HybridPool is IPool, TridentERC20 {
         swapFee = _swapFee;
         barFee = IMasterDeployer(_masterDeployer).barFee();
         barFeeTo = IMasterDeployer(_masterDeployer).barFeeTo();
-        bento = IBentoBoxMinimal(IMasterDeployer(_masterDeployer).bento());
+        bento = IBentoBoxV1(IMasterDeployer(_masterDeployer).bento());
         masterDeployer = IMasterDeployer(_masterDeployer);
         A = a;
         N_A = 2 * a;
-        token0PrecisionMultiplier = uint256(10)**(decimals - TridentERC20(_token0).decimals());
-        token1PrecisionMultiplier = uint256(10)**(decimals - TridentERC20(_token1).decimals());
+        token0PrecisionMultiplier = uint256(10)**(decimals - ERC20(_token0).decimals());
+        token1PrecisionMultiplier = uint256(10)**(decimals - ERC20(_token1).decimals());
         unlocked = 1;
     }
 
@@ -266,8 +268,8 @@ contract HybridPool is IPool, TridentERC20 {
         (_reserve0, _reserve1) = (reserve0, reserve1);
         balance0 = bento.balanceOf(token0, address(this));
         balance1 = bento.balanceOf(token1, address(this));
-        Rebase memory total0 = bento.totals(token0);
-        Rebase memory total1 = bento.totals(token1);
+        Total memory total0 = bento.totals(token0);
+        Total memory total1 = bento.totals(token1);
 
         _reserve0 = total0.toElastic(_reserve0);
         _reserve1 = total1.toElastic(_reserve1);
